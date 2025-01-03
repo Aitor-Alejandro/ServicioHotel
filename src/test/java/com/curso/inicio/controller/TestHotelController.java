@@ -1,7 +1,9 @@
-package com.curso.controller.test;
+package com.curso.inicio.controller;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.Arrays;
@@ -16,7 +18,6 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.curso.model.Hotel;
 import com.curso.service.HotelService;
-
 @SpringBootTest
 @AutoConfigureMockMvc
 class TestHotelController {
@@ -26,14 +27,26 @@ class TestHotelController {
 	private MockMvc mockMvc;
 	
 	@BeforeEach
-	void setUp() {
-		Hotel hotel = new Hotel (1, "hotelBonito", "Playa", 99.99d, true);
+	public void setUp() {
+		Hotel hotel = new Hotel (1, "hotelBonito", "playa", 99.99d, true);
 		when(service.findById(1)).thenReturn(hotel);
+		when(service.datosHotel("hotelBonito")).thenReturn(hotel);
 		when(service.hoteles()).thenReturn(Arrays.asList(hotel));
+		
 	}
 	@Test
-	void testGetHotel() throws Exception{
+	void getAllTest() throws Exception{
 		mockMvc.perform(get("/api/hoteles"))
-			.andExpect(status().isOk());
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$[0].nombre", is("hotelBonito")));
 	}
+	@Test
+	void getIdTest() throws Exception{
+		mockMvc.perform(get("/api/hoteles/hotelBonito"))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.idHotel", is(1)));
+		mockMvc.perform(get("/api/hoteles/hotelFeo"))
+			.andExpect(status().isNotFound());
+	}
+
 }
